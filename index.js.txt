@@ -5,17 +5,17 @@ app.use(express.json());
 const BOT_TOKEN = '8406574277:AAFwnvVsTRl7sNx2pTqDr7I4O-aVPf-pHnw';
 
 app.get('/', (req, res) => {
-  console.log('GET request received');
+  console.log('GET / - Bot status requested');
   res.json({
-    status: 'Simple Telegram Bot Running',
+    status: '✅ Green Family Group Bot Running',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '2.0.0'
   });
 });
 
 app.post('/webhook', async (req, res) => {
   try {
-    console.log('Webhook received:', JSON.stringify(req.body));
+    console.log('📨 Webhook received:', JSON.stringify(req.body));
     
     const message = req.body?.message;
     if (!message) {
@@ -24,32 +24,83 @@ app.post('/webhook', async (req, res) => {
     }
     
     const chatId = message.chat.id;
+    const chatType = message.chat.type; // 'private', 'group', 'supergroup'
     const text = message.text || '';
     const username = message.from?.username || message.from?.first_name || 'User';
     
-    console.log(`Message from ${username}: "${text}"`);
+    console.log(`Message from ${username} in ${chatType} (${chatId}): "${text}"`);
     
     let responseText = '';
     
-    if (text === '/start') {
-      responseText = '🚀 Простой бот работает!\n\n✅ Vercel подключен\n📱 Готов к работе!';
-    } else if (text === '/help') {
-      responseText = '🤖 Команды:\n/start - Приветствие\n/help - Помощь\n/ping - Проверка';
-    } else if (text === '/ping') {
-      responseText = '🏓 Понг! Бот работает нормально.';
-    } else if (text) {
-      responseText = `Вы написали: "${text}"\n\n🤖 Простой эхо-бот в действии!`;
+    // В группах бот отвечает только на команды или упоминания
+    if (text === '/start' || text === '/start@bazaznaniygfbot') {
+      responseText = `🌿 Привет! Я Green Family Bot!
+      
+👥 Работаю в группе: ${message.chat.title || 'Без названия'}
+🤖 Готов помогать участникам!
+📱 Используйте команды: /help /ping /info`;
+
+    } else if (text === '/help' || text === '/help@bazaznaniygfbot') {
+      responseText = `🤖 Команды Green Family Bot:
+
+/start - Приветствие
+/help - Эта справка
+/ping - Проверка работы
+/info - Информация о группе
+/about - О компании Green Family
+
+💡 Также можете обратиться: "Бот, [вопрос]"`;
+
+    } else if (text === '/ping' || text === '/ping@bazaznaniygfbot') {
+      responseText = `🏓 Понг! 
+      
+✅ Бот работает нормально
+🕒 Время: ${new Date().toLocaleTimeString('ru-RU')}
+👥 В группе: ${message.chat.title}`;
+
+    } else if (text === '/info' || text === '/info@bazaznaniygfbot') {
+      responseText = `📊 Информация о группе:
+      
+📝 Название: ${message.chat.title}
+🆔 ID: ${chatId}
+👥 Тип: ${chatType}
+📅 Время: ${new Date().toLocaleString('ru-RU')}`;
+
+    } else if (text === '/about' || text === '/about@bazaznaniygfbot') {
+      responseText = `🌿 Green Family - экологичные решения для жизни
+      
+🏠 Натуральные продукты для дома и семьи
+♻️ Забота об экологии и здоровье
+💚 Качество проверенное временем`;
+
+    // Отвечаем на упоминания "Бот, ..."
+    } else if (text.toLowerCase().startsWith('бот,') || text.toLowerCase().startsWith('bot,')) {
+      const question = text.slice(4).trim();
+      responseText = `🤖 Вы спросили: "${question}"
+      
+Я простой тестовый бот Green Family. 
+Для полноценной работы используйте команды выше! 😊`;
+
+    // В группах НЕ отвечаем на обычные сообщения (чтобы не спамить)
+    } else if (chatType === 'private' && text) {
+      // Только в приватных чатах отвечаем на всё
+      responseText = `Вы написали: "${text}"
+      
+🤖 Я тестовый бот Green Family!
+Используйте /help для списка команд.`;
     }
     
     if (responseText) {
       await sendMessage(chatId, responseText);
-      console.log('Response sent');
+      console.log('✅ Response sent');
+    } else {
+      console.log('ℹ️ No response needed (group message without command)');
     }
     
     return res.status(200).send('OK');
     
   } catch (error) {
-    console.error('Webhook error:', error);
+    console.error('❌ Webhook error:', error);
     return res.status(200).send('OK');
   }
 });
@@ -63,7 +114,8 @@ async function sendMessage(chatId, text) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         chat_id: chatId,
-        text: text
+        text: text,
+        parse_mode: 'HTML'
       })
     });
     
@@ -81,8 +133,8 @@ async function sendMessage(chatId, text) {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Bot server running on port ${PORT}`);
-  console.log(`Started: ${new Date().toISOString()}`);
+  console.log(`🚀 Green Family Group Bot running on port ${PORT}`);
+  console.log(`📅 Started: ${new Date().toISOString()}`);
 });
 
 module.exports = app;
