@@ -4,25 +4,23 @@ app.use(express.json());
 
 const BOT_TOKEN = '8406574277:AAFwnvVsTRl7sNx2pTqDr7I4O-aVPf-pHnw';
 
-// Главная страница
 app.get('/', (req, res) => {
-  console.log('GET / - Bot status requested');
+  console.log('GET request received');
   res.json({
-    status: '✅ Simple Telegram Bot Running',
+    status: 'Simple Telegram Bot Running',
     timestamp: new Date().toISOString(),
     version: '1.0.0'
   });
 });
 
-// Webhook
 app.post('/webhook', async (req, res) => {
   try {
-    console.log('📨 Webhook received:', JSON.stringify(req.body));
+    console.log('Webhook received:', JSON.stringify(req.body));
     
     const message = req.body?.message;
     if (!message) {
       console.log('No message');
-      return res.status(200).send('OK - no message');
+      return res.status(200).send('OK');
     }
     
     const chatId = message.chat.id;
@@ -45,18 +43,17 @@ app.post('/webhook', async (req, res) => {
     
     if (responseText) {
       await sendMessage(chatId, responseText);
-      console.log('✅ Response sent');
+      console.log('Response sent');
     }
     
     return res.status(200).send('OK');
     
   } catch (error) {
-    console.error('❌ Webhook error:', error);
+    console.error('Webhook error:', error);
     return res.status(200).send('OK');
   }
 });
 
-// Отправка сообщения
 async function sendMessage(chatId, text) {
   try {
     const fetch = (await import('node-fetch')).default;
@@ -82,11 +79,10 @@ async function sendMessage(chatId, text) {
   }
 }
 
-// Запуск сервера
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Simple Bot server running on port ${PORT}`);
-  console.log(`📅 Started: ${new Date().toISOString()}`);
+  console.log(`Bot server running on port ${PORT}`);
+  console.log(`Started: ${new Date().toISOString()}`);
 });
 
 module.exports = app;
